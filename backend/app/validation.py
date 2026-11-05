@@ -7,6 +7,29 @@ PASSWORD_MIN_LENGTH = 12
 PASSWORD_MAX_LENGTH = 128
 
 
+def validate_email(email):
+    if (
+        not isinstance(email, str)
+        or len(email.strip()) > 254
+        or not EMAIL_PATTERN.fullmatch(email.strip())
+    ):
+        return "Enter a valid email address."
+    return None
+
+
+def validate_full_name(full_name):
+    if not isinstance(full_name, str):
+        return "Full name is required."
+    normalized_name = full_name.strip()
+    if (
+        not normalized_name
+        or len(normalized_name) > 100
+        or not all(character.isprintable() for character in normalized_name)
+    ):
+        return "Full name must be 1-100 printable characters."
+    return None
+
+
 def validate_password(password):
     if not isinstance(password, str) or not (
         PASSWORD_MIN_LENGTH <= len(password) <= PASSWORD_MAX_LENGTH
@@ -36,23 +59,13 @@ def validate_registration(data):
     if not isinstance(username, str) or not USERNAME_PATTERN.fullmatch(username.strip()):
         errors["username"] = "Use 3-32 letters, numbers, or underscores."
 
-    if (
-        not isinstance(email, str)
-        or len(email.strip()) > 254
-        or not EMAIL_PATTERN.fullmatch(email.strip())
-    ):
-        errors["email"] = "Enter a valid email address."
+    email_error = validate_email(email)
+    if email_error:
+        errors["email"] = email_error
 
-    if not isinstance(full_name, str):
-        errors["full_name"] = "Full name is required."
-    else:
-        normalized_name = full_name.strip()
-        if (
-            not normalized_name
-            or len(normalized_name) > 100
-            or not all(character.isprintable() for character in normalized_name)
-        ):
-            errors["full_name"] = "Full name must be 1-100 printable characters."
+    full_name_error = validate_full_name(full_name)
+    if full_name_error:
+        errors["full_name"] = full_name_error
 
     password_error = validate_password(password)
     if password_error:

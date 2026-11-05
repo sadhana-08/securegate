@@ -28,6 +28,8 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+cookies.txt
+cookies-*.txt
 
 # SQLite databases and sidecar files
 *.db

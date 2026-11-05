@@ -1,17 +1,28 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import AppLayout from "./components/AppLayout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import EditProfilePage from "./pages/EditProfilePage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
+
 function App() {
   return (
-    <main className="welcome-card">
-      <p className="eyebrow">Student portal project</p>
-      <h1>Welcome to SecureGate</h1>
-      <p className="description">
-        The frontend is ready. Authentication and portal features will be added
-        in later phases.
-      </p>
-      <span className="status">
-        <span className="status-dot" aria-hidden="true" />
-        Frontend is running
-      </span>
-    </main>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/edit" element={<EditProfilePage />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   );
 }
 
