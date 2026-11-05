@@ -1,3 +1,5 @@
+import React from "react";
+
 function Loading({ label = "Loading SecureGate..." }) {
   return (
     <div className="loading-state" role="status" aria-live="polite">

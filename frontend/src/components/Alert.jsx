@@ -1,3 +1,5 @@
+import React from "react";
+
 function Alert({ children, variant = "error" }) {
   if (!children) {
     return null;
