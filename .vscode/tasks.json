@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SecureGate: Backend",
+      "type": "shell",
+      "command": "source .venv/Scripts/activate && python backend/init_db.py && python backend/run.py",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "securegate-backend",
+        "pattern": {
+          "regexp": "^(.*)$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*\\* Serving Flask app",
+          "endsPattern": "^\\s*\\* Running on"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "SecureGate: Frontend",
+      "type": "shell",
+      "command": "npm run dev -- --host 127.0.0.1 --port 5173 --strictPort",
+      "options": {
+        "cwd": "${workspaceFolder}\\frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "securegate-frontend",
+        "pattern": {
+          "regexp": "^(.*)$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*> securegate-frontend@",
+          "endsPattern": "http://127\\.0\\.0\\.1:5173/"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "SecureGate: Start both",
+      "dependsOn": [
+        "SecureGate: Backend",
+        "SecureGate: Frontend"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}

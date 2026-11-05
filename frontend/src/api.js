@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://127.0.0.1:5000/api";
+const API_HOST = window.location.hostname === "localhost" ? "localhost" : "127.0.0.1";
+const API_BASE_URL = `http://${API_HOST}:5000/api`;
 
 export class ApiError extends Error {
   constructor(message, status = 0, details = null) {
@@ -11,10 +12,16 @@ export class ApiError extends Error {
 
 function friendlyMessage(status, responseMessage) {
   if (status === 401) {
+    if (responseMessage === "Invalid username/email or password.") {
+      return "Sign-in failed. Check your username/email and password.";
+    }
+    if (responseMessage === "Authentication required.") {
+      return "Your session has expired. Please sign in again.";
+    }
     return responseMessage || "Please sign in to continue.";
   }
   if (status === 403) {
-    return "Your security token expired or is invalid. Please try again.";
+    return "The security token is missing or expired. Refresh the page and try again.";
   }
   if (status === 429) {
     return "Too many sign-in attempts. Please wait 15 minutes and try again.";
@@ -23,6 +30,35 @@ function friendlyMessage(status, responseMessage) {
     return "The server could not complete your request. Please try again later.";
   }
   return responseMessage || "Please check your information and try again.";
+}
+
+async function fetchCsrfToken() {
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/csrf-token`, {
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    });
+  } catch {
+    throw new ApiError("Cannot reach SecureGate. Check that the backend is running.");
+  }
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new ApiError(
+      "The server could not provide a security token. Please try again.",
+      response.status,
+    );
+  }
+  if (!response.ok || typeof payload.csrf_token !== "string") {
+    throw new ApiError(
+      "The server could not provide a security token. Please try again.",
+      response.status,
+    );
+  }
+  return payload.csrf_token;
 }
 
 async function request(path, { method = "GET", body, headers = {} } = {}) {
@@ -39,27 +75,7 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
   }
 
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-    try {
-      const csrfResponse = await fetch(`${API_BASE_URL}/csrf-token`, {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      const csrfPayload = await csrfResponse.json();
-      if (!csrfResponse.ok || typeof csrfPayload.csrf_token !== "string") {
-        throw new ApiError(
-          "Could not start a secure request. Refresh the page and try again.",
-          csrfResponse.status,
-        );
-      }
-      requestHeaders["X-CSRF-Token"] = csrfPayload.csrf_token;
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError(
-        "Cannot reach SecureGate. Check that the backend is running.",
-      );
-    }
+    requestHeaders["X-CSRF-Token"] = await fetchCsrfToken();
   }
 
   let response;
@@ -81,6 +97,12 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
   }
 
   if (!response.ok) {
+    if (
+      response.status === 401 &&
+      ["/me", "/profile"].includes(path)
+    ) {
+      window.dispatchEvent(new Event("securegate:unauthorized"));
+    }
     throw new ApiError(
       friendlyMessage(response.status, payload.error),
       response.status,
@@ -92,12 +114,24 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
 
 export const api = {
   register: (data) => request("/auth/register", { method: "POST", body: data }),
-  login: (identifier, password) =>
-    request("/auth/login", {
+  login: async (identifier, password) => {
+    const result = await request("/auth/login", {
       method: "POST",
       body: { identifier, password },
-    }),
-  logout: () => request("/auth/logout", { method: "POST" }),
+    });
+    await fetchCsrfToken();
+    return result;
+  },
+  logout: async () => {
+    const result = await request("/auth/logout", { method: "POST" });
+    try {
+      await fetchCsrfToken();
+    } catch (error) {
+      error.sessionEnded = true;
+      throw error;
+    }
+    return result;
+  },
   me: () => request("/me"),
   profile: () => request("/profile"),
   updateProfile: (data) =>

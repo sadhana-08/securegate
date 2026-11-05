@@ -6,32 +6,28 @@ export function validateRegistration(values) {
   if (!usernamePattern.test(values.username.trim())) {
     errors.username = "Use 3-32 letters, numbers, or underscores.";
   }
-  if (
-    values.email.trim().length > 254 ||
-    !emailPattern.test(values.email.trim())
-  ) {
+  if (!emailPattern.test(values.email.trim())) {
     errors.email = "Enter a valid email address.";
   }
-  if (!values.full_name.trim() || values.full_name.trim().length > 100) {
+  if (
+    !values.full_name.trim() ||
+    Array.from(values.full_name.trim()).length > 100
+  ) {
     errors.full_name = "Full name must be 1-100 characters.";
   }
-  if (values.password.length < 12 || values.password.length > 128) {
+  const passwordLength = Array.from(values.password).length;
+  if (passwordLength < 12 || passwordLength > 128) {
     errors.password = "Use a password between 12 and 128 characters.";
-  } else if (
-    !/[a-z]/.test(values.password) ||
-    !/[A-Z]/.test(values.password) ||
-    !/[0-9]/.test(values.password) ||
-    !/[^A-Za-z0-9]/.test(values.password)
-  ) {
-    errors.password =
-      "Include an uppercase letter, lowercase letter, number, and symbol.";
   }
   return errors;
 }
 
 export function validateProfile(values) {
   const errors = {};
-  if (!values.full_name.trim() || values.full_name.trim().length > 100) {
+  if (
+    !values.full_name.trim() ||
+    Array.from(values.full_name.trim()).length > 100
+  ) {
     errors.full_name = "Full name must be 1-100 characters.";
   }
   if (

@@ -81,7 +81,7 @@ function RegisterPage() {
         <label className="field">
           <span>Password</span>
           <input name="password" type="password" autoComplete="new-password" value={values.password} onChange={updateField} required />
-          <small className="field-hint">12-128 characters; include uppercase, lowercase, a number, and a symbol.</small>
+          <small className="field-hint">12-128 characters. The server will check password strength when you submit.</small>
           {errors.password && <small className="field-error">{errors.password}</small>}
         </label>
         <button className="button button-wide" type="submit" disabled={submitting}>

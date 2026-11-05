@@ -31,6 +31,16 @@ export function AuthProvider({ children }) {
     refreshUser().catch(() => {});
   }, [refreshUser]);
 
+  useEffect(() => {
+    function handleUnauthorized() {
+      setUser(null);
+    }
+    window.addEventListener("securegate:unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("securegate:unauthorized", handleUnauthorized);
+    };
+  }, []);
+
   const signIn = useCallback(async (identifier, password) => {
     await api.login(identifier, password);
     return refreshUser();
@@ -39,8 +49,12 @@ export function AuthProvider({ children }) {
   const signOut = useCallback(async () => {
     try {
       await api.logout();
-    } finally {
       setUser(null);
+    } catch (error) {
+      if (error.sessionEnded) {
+        setUser(null);
+      }
+      throw error;
     }
   }, []);
 
