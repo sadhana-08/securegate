@@ -36,3 +36,12 @@ npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
 Open `http://127.0.0.1:5173` in your browser. In VS Code, the **SecureGate: Start both** task starts both development servers after dependencies and `.env` are set up.
+
+## Run backend security tests
+
+From the project root in Git Bash, install the test dependencies and run the isolated backend security regression suite:
+
+```bash
+python -m pip install -r backend/requirements-test.txt
+PYTHONPATH=backend python -m pytest backend/tests -q
+```
